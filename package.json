@@ -1,0 +1,28 @@
+{
+    "devDependencies": {
+        "@babel/preset-react": "^7.0.0",
+        "@symfony/webpack-encore": "^0.22.0",
+        "babel-plugin-transform-react-remove-prop-types": "^0.4.20",
+        "bootstrap": "3",
+        "eslint": "^5.9.0",
+        "eslint-plugin-react": "^7.11.1",
+        "font-awesome": "4",
+        "jquery": "^3.3.1",
+        "node-sass": "^4.10.0",
+        "prop-types": "^15.6.2",
+        "react": "^16.6.3",
+        "react-dom": "^16.6.3",
+        "sass-loader": "^7.1.0",
+        "sweetalert2": "^7.29.1",
+        "uuid": "^3.3.2",
+        "webpack-notifier": "^1.7.0"
+    },
+    "license": "UNLICENSED",
+    "private": true,
+    "scripts": {
+        "dev-server": "encore dev-server",
+        "dev": "encore dev",
+        "watch": "encore dev --watch",
+        "build": "encore production --progress"
+    }
+}

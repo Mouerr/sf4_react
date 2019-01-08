@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="row">
+        <div id="lift-stuff-app" class="col-md-7"></div>
+
+        <div class="col-md-5">
+            <div class="leaderboard">
+                <h2 class="text-center">
+                    <img class="dumbbell" src="{{ asset('build/static/dumbbell.png') }}" />
+                    Leaderboard
+                </h2>
+
+                {{ include('lift/_leaderboard.html.twig') }}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@7.11.0/dist/sweetalert2.min.css" />
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+
+    <script>
+
+        window.REP_LOG_APP_PROPS = {{ repLogAppProps|json_encode|raw }};
+
+    </script>
+    <script src="{{ asset('build/rep_log_react.js') }}"></script>
+
+{% endblock %}
