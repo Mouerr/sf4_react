@@ -5,9 +5,10 @@ namespace App\Controller;
 use App\Api\ApiRoute;
 use App\Entity\RepLog;
 use App\Form\Type\RepLogType;
+use App\Service\ApiModel;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -16,35 +17,40 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
  * @IsGranted("ROLE_USER")
  * @ApiRoute()
  */
-class RepLogController extends BaseController
+class RepLogController extends AbstractController
 {
+    private $apiModel;
+
+    public function __construct(ApiModel $apiModel)
+    {
+        $this->apiModel = $apiModel;
+    }
+
     /**
-     * @Route("/reps", name="rep_log_list", options={"expose" = true})
-     * @Method("GET")
+     * @Route("/reps", name="rep_log_list", methods={"GET"}, options={"expose" = true})
      */
     public function getRepLogsAction()
     {
-        $models = $this->findAllUsersRepLogModels();
 
-        return $this->createApiResponse([
+        $models = $this->apiModel->findAllUsersRepLogModels();
+
+        return $this->apiModel->createApiResponse([
             'items' => $models
         ]);
     }
 
     /**
-     * @Route("/reps/{id}", name="rep_log_get")
-     * @Method("GET")
+     * @Route("/reps/{id}", methods={"GET"}, name="rep_log_get")
      */
     public function getRepLogAction(RepLog $repLog)
     {
-        $apiModel = $this->createRepLogApiModel($repLog);
+        $apiModel = $this->apiModel->createRepLogApiModel($repLog);
 
-        return $this->createApiResponse($apiModel);
+        return $this->apiModel->createApiResponse($apiModel);
     }
 
     /**
-     * @Route("/reps/{id}", name="rep_log_delete")
-     * @Method("DELETE")
+     * @Route("/reps/{id}", name="rep_log_delete", methods={"DELETE"})
      */
     public function deleteRepLogAction(RepLog $repLog)
     {
@@ -57,8 +63,7 @@ class RepLogController extends BaseController
     }
 
     /**
-     * @Route("/reps", name="rep_log_new", options={"expose" = true})
-     * @Method("POST")
+     * @Route("/reps", name="rep_log_new", methods={"POST"}, options={"expose" = true})
      */
     public function newRepLogAction(Request $request)
     {
@@ -73,9 +78,9 @@ class RepLogController extends BaseController
         ]);
         $form->submit($data);
         if (!$form->isValid()) {
-            $errors = $this->getErrorsFromForm($form);
+            $errors = $this->apiModel->getErrorsFromForm($form);
 
-            return $this->createApiResponse([
+            return $this->apiModel->createApiResponse([
                 'errors' => $errors
             ], 400);
         }
@@ -87,9 +92,9 @@ class RepLogController extends BaseController
         $em->persist($repLog);
         $em->flush();
 
-        $apiModel = $this->createRepLogApiModel($repLog);
+        $apiModel = $this->apiModel->createRepLogApiModel($repLog);
 
-        $response = $this->createApiResponse($apiModel);
+        $response = $this->apiModel->createApiResponse($apiModel);
         // setting the Location header... it's a best-practice
         $response->headers->set(
             'Location',

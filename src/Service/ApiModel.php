@@ -1,25 +1,38 @@
 <?php
 
-namespace App\Controller;
+namespace App\Service;
 
 use App\Api\RepLogApiModel;
 use App\Entity\RepLog;
-use App\Repository\RepLogRepository;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Psr\Log\LoggerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Translation\TranslatorInterface;
 
-class BaseController extends Controller
+class ApiModel extends AbstractController
 {
+    private $translator;
+    private $logger;
+    private $serializer;
+
+    //private $isDebug;
+    public function __construct(LoggerInterface $logger, TranslatorInterface $translator, SerializerInterface $serializer)
+    {
+        $this->logger = $logger;
+        $this->translator = $translator;
+        $this->serializer = $serializer;
+    }
+
     /**
      * @param mixed $data Usually an object you want to serialize
      * @param int $statusCode
      * @return JsonResponse
      */
-    protected function createApiResponse($data, $statusCode = 200)
+    public function createApiResponse($data, $statusCode = 200)
     {
-        $json = $this->get('serializer')
-            ->serialize($data, 'json');
+        $json = $this->serializer->serialize($data, 'json');
 
         return new JsonResponse($json, $statusCode, [], true);
     }
@@ -37,7 +50,7 @@ class BaseController extends Controller
      * @param FormInterface $form
      * @return array|string
      */
-    protected function getErrorsFromForm(FormInterface $form)
+    public function getErrorsFromForm(FormInterface $form)
     {
         foreach ($form->getErrors() as $error) {
             // only supporting 1 error per field
@@ -59,6 +72,22 @@ class BaseController extends Controller
     }
 
     /**
+     * @return RepLogApiModel[]
+     */
+    public function findAllUsersRepLogModels()
+    {
+        $repLogs = $this->getDoctrine()->getRepository(RepLog::class)
+            ->findBy(array('user' => $this->getUser()));
+
+        $models = [];
+        foreach ($repLogs as $repLog) {
+            $models[] = $this->createRepLogApiModel($repLog);
+        }
+
+        return $models;
+    }
+
+    /**
      * Turns a RepLog into a RepLogApiModel for the API.
      *
      * This could be moved into a service if it needed to be
@@ -67,13 +96,12 @@ class BaseController extends Controller
      * @param RepLog $repLog
      * @return RepLogApiModel
      */
-    protected function createRepLogApiModel(RepLog $repLog)
+    public function createRepLogApiModel(RepLog $repLog)
     {
         $model = new RepLogApiModel();
         $model->id = $repLog->getId();
         $model->reps = $repLog->getReps();
-        $model->itemLabel = $this->get('translator')
-            ->trans($repLog->getItemLabel());
+        $model->itemLabel = $this->translator->trans($repLog->getItemLabel());
         $model->totalWeightLifted = $repLog->getTotalWeightLifted();
 
         $selfUrl = $this->generateUrl(
@@ -83,22 +111,5 @@ class BaseController extends Controller
         $model->addLink('_self', $selfUrl);
 
         return $model;
-    }
-
-    /**
-     * @return RepLogApiModel[]
-     */
-    protected function findAllUsersRepLogModels()
-    {
-        $repLogs = $this->getDoctrine()->getRepository(RepLog::class)
-            ->findBy(array('user' => $this->getUser()))
-        ;
-
-        $models = [];
-        foreach ($repLogs as $repLog) {
-            $models[] = $this->createRepLogApiModel($repLog);
-        }
-
-        return $models;
     }
 }
